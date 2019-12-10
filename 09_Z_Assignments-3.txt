@@ -1,7 +1,7 @@
 Adding Maps and Lookups in your Terraform files
 The lab files can be found @ https://github.com/satyensingh/terraform-assignment-resources.git
 In the repo you will find main.tf, outputs.tf, and variables.tf.
-Add a new variable called env. Set a description to “env: dev or prod”.
+Add a new variable called env. Set a description to â€œenv: dev or prodâ€.
 Convert the type from image_name to map.
 
 Change the default to use key/value pairs. Set dev to ghost:latest and prod to ghost:alpine.
@@ -77,12 +77,8 @@ variable "ext_port" {
 }
 
 variable "env" {
-  type= "map"
   description = "env: dev or prod"
-  default     = {
-    dev       = "dev"
-    prod      = "prod"
-        }
+  default     = "dev"
 }
 
 cat output.tf
@@ -233,7 +229,7 @@ ip_address = 172.17.0.2
 
 $ docker container ls  -f name=blog_dev
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
-5a82dfee2da5        eadda45eb5e4        "docker-entrypoint.s…"   4 minutes ago       Up 4 minutes        0.0.0.0:8080->2368/tcp   blog_dev
+5a82dfee2da5        eadda45eb5e4        "docker-entrypoint.sâ€¦"   4 minutes ago       Up 4 minutes        0.0.0.0:8080->2368/tcp   blog_dev
 
 $ docker images ghost:latest
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -322,7 +318,7 @@ ip_address = 172.17.0.2
 
 $ docker container ls  -f name=blog_prod
 CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS                  NAMES
-e54583cff1b6        7a562dfa21a3        "docker-entrypoint.s…"   About a minute ago   Up About a minute   0.0.0.0:80->2368/tcp   blog_prod
+e54583cff1b6        7a562dfa21a3        "docker-entrypoint.sâ€¦"   About a minute ago   Up About a minute   0.0.0.0:80->2368/tcp   blog_prod
 
 $ docker images ghost:alpine
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -330,7 +326,7 @@ ghost               alpine              7a562dfa21a3        5 days ago          
 
 $ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
-e54583cff1b6        7a562dfa21a3        "docker-entrypoint.s…"   6 minutes ago       Up 6 minutes        0.0.0.0:80->2368/tcp   blog_prod
+e54583cff1b6        7a562dfa21a3        "docker-entrypoint.sâ€¦"   6 minutes ago       Up 6 minutes        0.0.0.0:80->2368/tcp   blog_prod
 
 $ curl 172.31.14.134:80
 <!DOCTYPE html>
