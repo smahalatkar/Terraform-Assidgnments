@@ -1,0 +1,161 @@
+Here, we will start working with Jenkins by creating a simple build job. This job will deploy a Docker container using Terraform, list the container, and then destroy it.
+
+In the Jenkins dashboard, Click New Item.
+Select Freestyle Project, and enter an item name of DeployGhost. Click Ok.
+
+Under Source Code Management, select Git. Enter a Repository URL of https://github.com/satyensingh/terraform-docker.git
+
+In the Build section, click Add build step and select Execute shell from the dropdown.
+
+Add the following in the Command area:
+
+terraform init
+terraform plan -out=tfplan
+terraform apply tfplan
+docker container ls
+terraform destroy -auto-approve
+Click Save.
+
+Now, if we click Build Now in the left-hand menu, our project will start building. Clicking the little dropdown arrow next to #1 will give us a menu. 
+Select Console Output to watch things build. Once we get a Finished: SUCCESS message, we're done.
+
+======================================================================================================================================================
+
+Started by user Admin
+Running as SYSTEM
+Building in workspace /var/jenkins_home/workspace/DeployGhost
+No credentials specified
+ > git rev-parse --is-inside-work-tree # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/smahalatkar/terraform-docker.git # timeout=10
+Fetching upstream changes from https://github.com/smahalatkar/terraform-docker.git
+ > git --version # timeout=10
+ > git fetch --tags --progress -- https://github.com/smahalatkar/terraform-docker.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+ > git rev-parse refs/remotes/origin/origin/master^{commit} # timeout=10
+Checking out Revision 0c7e9e71b857e062a2d5ddf9b654b40637d2601d (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 0c7e9e71b857e062a2d5ddf9b654b40637d2601d # timeout=10
+Commit message: "port number change committed"
+ > git rev-list --no-walk 29e47513861721d25eff749168dd2fae488cafcf # timeout=10
+[DeployGhost] $ /bin/sh -xe /tmp/jenkins7053470245983924147.sh
++ terraform init
+
+[0m[1mInitializing provider plugins...[0m
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.docker: version = "~> 2.6"
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
++ terraform plan -out=tfplan
+[0m[1mRefreshing Terraform state in-memory prior to plan...[0m
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+[0m
+[0m[1mdocker_image.image_id: Refreshing state... (ID: sha256:eadda45eb5e4c4dde5ef2bbb16f7e675...e6fab6025f44fe1c214a5efc6eghost:latest)[0m
+[0m[1mdocker_container.container_id: Refreshing state... (ID: c0f9712931a54b3912968708a3f03e14d31261075366dad54647bead99088795)[0m
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  [32m+[0m create
+[0m
+Terraform will perform the following actions:
+
+[32m  [32m+[0m [32mdocker_container.container_id
+[0m      id:               <computed>
+      attach:           "false"
+      bridge:           <computed>
+      container_logs:   <computed>
+      exit_code:        <computed>
+      gateway:          <computed>
+      image:            "sha256:eadda45eb5e4c4dde5ef2bbb16f7e6754183d4e6fab6025f44fe1c214a5efc6e"
+      ip_address:       <computed>
+      ip_prefix_length: <computed>
+      log_driver:       "json-file"
+      logs:             "false"
+      must_run:         "true"
+      name:             "ghost_blog"
+      network_data.#:   <computed>
+      ports.#:          "1"
+      ports.0.external: "8091"
+      ports.0.internal: "2368"
+      ports.0.ip:       "0.0.0.0"
+      ports.0.protocol: "tcp"
+      read_only:        "false"
+      restart:          "no"
+      rm:               "false"
+      start:            "true"
+[0m
+[0m
+[0m[1mPlan:[0m 1 to add, 0 to change, 0 to destroy.[0m
+
+------------------------------------------------------------------------
+
+This plan was saved to: tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan"
+
++ terraform apply tfplan
+[0m[1mdocker_container.container_id: Creating...[0m
+  attach:           "" => "false"
+  bridge:           "" => "<computed>"
+  container_logs:   "" => "<computed>"
+  exit_code:        "" => "<computed>"
+  gateway:          "" => "<computed>"
+  image:            "" => "sha256:eadda45eb5e4c4dde5ef2bbb16f7e6754183d4e6fab6025f44fe1c214a5efc6e"
+  ip_address:       "" => "<computed>"
+  ip_prefix_length: "" => "<computed>"
+  log_driver:       "" => "json-file"
+  logs:             "" => "false"
+  must_run:         "" => "true"
+  name:             "" => "ghost_blog"
+  network_data.#:   "" => "<computed>"
+  ports.#:          "" => "1"
+  ports.0.external: "" => "8091"
+  ports.0.internal: "" => "2368"
+  ports.0.ip:       "" => "0.0.0.0"
+  ports.0.protocol: "" => "tcp"
+  read_only:        "" => "false"
+  restart:          "" => "no"
+  rm:               "" => "false"
+  start:            "" => "true"[0m
+[0m[1mdocker_container.container_id: Creation complete after 1s (ID: 52a6c67ed537606a8484c4dc2ddf08aab724030ed3bb80941cd852e457b1006d)[0m[0m
+[0m[1m[32m
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.[0m
+[0m[1m[32m
+Outputs:
+
+container_name = ghost_blog
+ip = 172.17.0.3[0m
++ docker container ls
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                               NAMES
+52a6c67ed537        eadda45eb5e4        "docker-entrypoint.s…"   3 seconds ago       Up 1 second         0.0.0.0:8091->2368/tcp              ghost_blog
+3c5acbe98e71        jenkins:terraform   "/sbin/tini -- /usr/…"   3 hours ago         Up 3 hours          50000/tcp, 0.0.0.0:8090->8080/tcp   jenkins
++ terraform destroy -auto-approve
+[0m[1mdocker_image.image_id: Refreshing state... (ID: sha256:eadda45eb5e4c4dde5ef2bbb16f7e675...e6fab6025f44fe1c214a5efc6eghost:latest)[0m
+[0m[1mdocker_container.container_id: Refreshing state... (ID: 52a6c67ed537606a8484c4dc2ddf08aab724030ed3bb80941cd852e457b1006d)[0m
+[0m[1mdocker_container.container_id: Destroying... (ID: 52a6c67ed537606a8484c4dc2ddf08aab724030ed3bb80941cd852e457b1006d)[0m[0m
+[0m[1mdocker_container.container_id: Destruction complete after 1s[0m[0m
+[0m[1mdocker_image.image_id: Destroying... (ID: sha256:eadda45eb5e4c4dde5ef2bbb16f7e675...e6fab6025f44fe1c214a5efc6eghost:latest)[0m[0m
+[0m[1mdocker_image.image_id: Destruction complete after 4s[0m[0m
+[0m[1m[32m
+Destroy complete! Resources: 2 destroyed.[0m
+Finished: SUCCESS
