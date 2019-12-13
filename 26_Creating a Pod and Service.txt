@@ -1,0 +1,200 @@
+Creating a Pod and Service
+In this lesson, we will create a pod and service using Terraform.
+
+Setup your environment:
+
+mkdir -p ~/terraform/service
+cd ~/terraform/service
+Create main.tf:
+
+vi main.tf
+main.tf contents:
+
+resource "kubernetes_service" "ghost_service" {
+  metadata {
+    name = "ghost-service"
+  }
+  spec {
+    selector {
+      app = "${kubernetes_pod.ghost_alpine.metadata.0.labels.app}"
+    }
+    port {
+      port = "2368"
+      target_port = "2368"
+      node_port = "30081"
+    }
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_pod" "ghost_alpine" {
+  metadata {
+    name = "ghost-alpine"
+    labels {
+      app = "ghost-blog"
+    }
+  }
+
+  spec {
+    container {
+      image = "ghost:alpine"
+      name  = "ghost-alpine"
+      port  {
+        container_port = "2368"
+      }
+    }
+  }
+}
+Initialize Terraform:
+
+terraform init
+Validate the files:
+
+terraform validate
+Plan the deployment:
+
+terraform plan
+Deploy the pod:
+
+terraform apply -auto-approve
+List the Pods:
+
+kubectl get pods
+List the Services:
+
+kubectl get services
+Reset the environment:
+
+terraform destroy -auto-approve
+
+============================================================================================================================
+
+$ mkdir -p ~/terraform/service
+$ cd ~/terraform/service
+
+cat main.tf
+
+
+resource "kubernetes_service" "ghost_service" {
+  metadata {
+    name = "ghost-service"
+  }
+  spec {
+    selector {
+      app = "${kubernetes_pod.ghost_alpine.metadata.0.labels.app}"
+    }
+    port {
+      port = "2368"
+      target_port = "2368"
+      node_port = "30081"
+    }
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_pod" "ghost_alpine" {
+  metadata {
+    name = "ghost-alpine"
+    labels {
+      app = "ghost-blog"
+    }
+  }
+
+  spec {
+    container {
+      image = "ghost:alpine"
+      name  = "ghost-alpine"
+      port  {
+        container_port = "2368"
+      }
+    }
+  }
+}
+
+terraform init
+$ terraform init
+
+Initializing provider plugins...
+- Checking for available provider plugins on https://releases.hashicorp.com...
+- Downloading plugin for provider "kubernetes" (1.10.0)...
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.kubernetes: version = "~> 1.10"
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+$ terraform validate
+Success! The configuration is valid.
+
+$ terraform apply -auto-approve
+
+kubernetes_pod.ghost_alpine: Refreshing state... (ID: default/ghost-alpine)
+kubernetes_service.ghost_service: Creating...
+  load_balancer_ingress.#:            "" => "<computed>"
+  metadata.#:                         "" => "1"
+  metadata.0.generation:              "" => "<computed>"
+  metadata.0.name:                    "" => "ghost-service"
+  metadata.0.namespace:               "" => "default"
+  metadata.0.resource_version:        "" => "<computed>"
+  metadata.0.self_link:               "" => "<computed>"
+  metadata.0.uid:                     "" => "<computed>"
+  spec.#:                             "" => "1"
+  spec.0.cluster_ip:                  "" => "<computed>"
+  spec.0.external_traffic_policy:     "" => "<computed>"
+  spec.0.port.#:                      "" => "1"
+  spec.0.port.0.node_port:            "" => "30081"
+  spec.0.port.0.port:                 "" => "2368"
+  spec.0.port.0.protocol:             "" => "TCP"
+  spec.0.port.0.target_port:          "" => "2368"
+  spec.0.publish_not_ready_addresses: "" => "false"
+  spec.0.selector.%:                  "" => "1"
+  spec.0.selector.app:                "" => "ghost-blog"
+  spec.0.session_affinity:            "" => "None"
+  spec.0.type:                        "" => "NodePort"
+kubernetes_service.ghost_service: Creation complete after 0s (ID: default/ghost-service)
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+
+$ kubectl get pods
+NAME           READY   STATUS    RESTARTS   AGE
+ghost-alpine   1/1     Running   0          4m40s
+
+$ kubectl get services
+NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+ghost-service   NodePort    10.110.84.62   <none>        2368:30081/TCP   3m10s
+kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP          43m
+
+$ terraform destroy -auto-approve
+
+$ terraform destroy -auto-approve
+kubernetes_pod.ghost_alpine: Refreshing state... (ID: default/ghost-alpine)
+kubernetes_service.ghost_service: Refreshing state... (ID: default/ghost-service)
+kubernetes_service.ghost_service: Destroying... (ID: default/ghost-service)
+kubernetes_service.ghost_service: Destruction complete after 0s
+kubernetes_pod.ghost_alpine: Destroying... (ID: default/ghost-alpine)
+kubernetes_pod.ghost_alpine: Destruction complete after 3s
+
+Destroy complete! Resources: 2 destroyed.
+
+$ kubectl get pods
+No resources found.
+
+$ kubectl get services
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   45m

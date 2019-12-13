@@ -1,0 +1,562 @@
+Creating a Deployment
+In this lesson, we will use Terraform to create a Kubernetes deployment and service.
+
+Setup your environment:
+
+mkdir -p ~/terraform/deployment
+cd ~/terraform/deployment
+Create main.tf:
+
+vi main.tf
+main.tf contents:
+
+resource "kubernetes_service" "ghost_service" {
+  metadata {
+    name = "ghost-service"
+  }
+  spec {
+    selector {
+      app = "${kubernetes_deployment.ghost_deployment.spec.0.template.0.metadata.0.labels.app}"
+    }
+    port {
+      port        = "2368"
+      target_port = "2368"
+      node_port   = "30080"
+    }
+
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_deployment" "ghost_deployment" {
+  metadata {
+    name = "ghost-blog"
+  }
+
+  spec {
+    replicas = "1"
+
+    selector {
+      match_labels {
+        app = "ghost-blog"
+      }
+    }
+
+    template {
+      metadata {
+        labels {
+          app = "ghost-blog"
+        }
+      }
+
+      spec {
+        container {
+          name  = "ghost"
+          image = "ghost:alpine"
+          port {
+            container_port = "2368"
+          }
+        }
+      }
+    }
+  }
+}
+Initialize Terraform:
+
+terraform init
+Validate the files:
+
+terraform validate
+Plan the deployment:
+
+terraform plan
+Deploy the pod:
+
+terraform apply -auto-approve
+List the Deployments:
+
+kubectl get deployments
+kubectl get pods
+kubectl delete pod [POD_ID]
+Reset the environment:
+
+terraform destroy -auto-approve
+
+
+======================================================================================================================================================
+
+cat main.tf
+resource "kubernetes_service" "ghost_service" {
+  metadata {
+    name = "ghost-service"
+  }
+  spec {
+    selector {
+      app = "${kubernetes_deployment.ghost_deployment.spec.0.template.0.metadata.0.labels.app}"
+    }
+    port {
+      port        = "2368"
+      target_port = "2368"
+      node_port   = "30080"
+    }
+
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_deployment" "ghost_deployment" {
+  metadata {
+    name = "ghost-blog"
+  }
+
+  spec {
+    replicas = "1"
+
+    selector {
+      match_labels {
+        app = "ghost-blog"
+      }
+    }
+
+    template {
+      metadata {
+        labels {
+          app = "ghost-blog"
+        }
+      }
+
+      spec {
+        container {
+          name  = "ghost"
+          image = "ghost:alpine"
+          port {
+            container_port = "2368"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+$ terraform init
+
+
+Initializing provider plugins...
+- Checking for available provider plugins on https://releases.hashicorp.com...
+- Downloading plugin for provider "kubernetes" (1.10.0)...
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.kubernetes: version = "~> 1.10"
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+$ terraform vaidate
+Success! The configuration is valid.
+
+$ terraform plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  + kubernetes_deployment.ghost_deployment
+      id:                                                            <computed>
+      metadata.#:                                                    "1"
+      metadata.0.generation:                                         <computed>
+      metadata.0.name:                                               "ghost-blog"
+      metadata.0.namespace:                                          "default"
+      metadata.0.resource_version:                                   <computed>
+      metadata.0.self_link:                                          <computed>
+      metadata.0.uid:                                                <computed>
+      spec.#:                                                        "1"
+      spec.0.min_ready_seconds:                                      "0"
+      spec.0.paused:                                                 "false"
+      spec.0.progress_deadline_seconds:                              "600"
+      spec.0.replicas:                                               "1"
+      spec.0.revision_history_limit:                                 "10"
+      spec.0.selector.#:                                             "1"
+      spec.0.selector.0.match_labels.%:                              "1"
+      spec.0.selector.0.match_labels.app:                            "ghost-blog"
+      spec.0.strategy.#:                                             <computed>
+      spec.0.template.#:                                             "1"
+      spec.0.template.0.metadata.#:                                  "1"
+      spec.0.template.0.metadata.0.generation:                       <computed>
+      spec.0.template.0.metadata.0.labels.%:                         "1"
+      spec.0.template.0.metadata.0.labels.app:                       "ghost-blog"
+      spec.0.template.0.metadata.0.name:                             <computed>
+      spec.0.template.0.metadata.0.resource_version:                 <computed>
+      spec.0.template.0.metadata.0.self_link:                        <computed>
+      spec.0.template.0.metadata.0.uid:                              <computed>
+      spec.0.template.0.spec.#:                                      "1"
+      spec.0.template.0.spec.0.container.#:                          "1"
+      spec.0.template.0.spec.0.container.0.image:                    "ghost:alpine"
+      spec.0.template.0.spec.0.container.0.image_pull_policy:        <computed>
+      spec.0.template.0.spec.0.container.0.name:                     "ghost"
+      spec.0.template.0.spec.0.container.0.port.#:                   "1"
+      spec.0.template.0.spec.0.container.0.port.0.container_port:    "2368"
+      spec.0.template.0.spec.0.container.0.port.0.protocol:          "TCP"
+      spec.0.template.0.spec.0.container.0.resources.#:              <computed>
+      spec.0.template.0.spec.0.container.0.stdin:                    "false"
+      spec.0.template.0.spec.0.container.0.stdin_once:               "false"
+      spec.0.template.0.spec.0.container.0.termination_message_path: "/dev/termination-log"
+      spec.0.template.0.spec.0.container.0.tty:                      "false"
+      spec.0.template.0.spec.0.container.0.volume_mount.#:           <computed>
+      spec.0.template.0.spec.0.dns_policy:                           "ClusterFirst"
+      spec.0.template.0.spec.0.host_ipc:                             "false"
+      spec.0.template.0.spec.0.host_network:                         "false"
+      spec.0.template.0.spec.0.host_pid:                             "false"
+      spec.0.template.0.spec.0.hostname:                             <computed>
+      spec.0.template.0.spec.0.image_pull_secrets.#:                 <computed>
+      spec.0.template.0.spec.0.node_name:                            <computed>
+      spec.0.template.0.spec.0.restart_policy:                       "Always"
+      spec.0.template.0.spec.0.service_account_name:                 <computed>
+      spec.0.template.0.spec.0.share_process_namespace:              "false"
+      spec.0.template.0.spec.0.termination_grace_period_seconds:     "30"
+      spec.0.template.0.spec.0.volume.#:                             <computed>
+
+  + kubernetes_service.ghost_service
+      id:                                                            <computed>
+      load_balancer_ingress.#:                                       <computed>
+      metadata.#:                                                    "1"
+      metadata.0.generation:                                         <computed>
+      metadata.0.name:                                               "ghost-service"
+      metadata.0.namespace:                                          "default"
+      metadata.0.resource_version:                                   <computed>
+      metadata.0.self_link:                                          <computed>
+      metadata.0.uid:                                                <computed>
+      spec.#:                                                        "1"
+      spec.0.cluster_ip:                                             <computed>
+      spec.0.external_traffic_policy:                                <computed>
+      spec.0.port.#:                                                 "1"
+      spec.0.port.0.node_port:                                       "30080"
+      spec.0.port.0.port:                                            "2368"
+      spec.0.port.0.protocol:                                        "TCP"
+      spec.0.port.0.target_port:                                     "2368"
+      spec.0.publish_not_ready_addresses:                            "false"
+      spec.0.selector.%:                                             "1"
+      spec.0.selector.app:                                           "ghost-blog"
+      spec.0.session_affinity:                                       "None"
+      spec.0.type:                                                   "NodePort"
+
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if
+"terraform apply" is subsequently run.
+
+$ terraform apply -auto-approve
+kubernetes_pod.ghost_alpine: Refreshing state... (ID: default/ghost-alpine)
+kubernetes_service.ghost_service: Creating...
+  load_balancer_ingress.#:            "" => "<computed>"
+  metadata.#:                         "" => "1"
+  metadata.0.generation:              "" => "<computed>"
+  metadata.0.name:                    "" => "ghost-service"
+  metadata.0.namespace:               "" => "default"
+  metadata.0.resource_version:        "" => "<computed>"
+  metadata.0.self_link:               "" => "<computed>"
+  metadata.0.uid:                     "" => "<computed>"
+  spec.#:                             "" => "1"
+  spec.0.cluster_ip:                  "" => "<computed>"
+  spec.0.external_traffic_policy:     "" => "<computed>"
+  spec.0.port.#:                      "" => "1"
+  spec.0.port.0.node_port:            "" => "30081"
+  spec.0.port.0.port:                 "" => "2368"
+  spec.0.port.0.protocol:             "" => "TCP"
+  spec.0.port.0.target_port:          "" => "2368"
+  spec.0.publish_not_ready_addresses: "" => "false"
+  spec.0.selector.%:                  "" => "1"
+  spec.0.selector.app:                "" => "ghost-blog"
+  spec.0.session_affinity:            "" => "None"
+  spec.0.type:                        "" => "NodePort"
+kubernetes_service.ghost_service: Creation complete after 0s (ID: default/ghost-service)
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+master $ kubectl get pods
+NAME           READY   STATUS    RESTARTS   AGE
+ghost-alpine   1/1     Running   0          4m40s
+master $ kubectl get services
+NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+ghost-service   NodePort    10.110.84.62   <none>        2368:30081/TCP   3m1s
+kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP          43m
+master $ kubectl get service
+NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+ghost-service   NodePort    10.110.84.62   <none>        2368:30081/TCP   3m10s
+kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP          43m
+master $ terraform destroy -auto-approve
+kubernetes_pod.ghost_alpine: Refreshing state... (ID: default/ghost-alpine)
+kubernetes_service.ghost_service: Refreshing state... (ID: default/ghost-service)
+kubernetes_service.ghost_service: Destroying... (ID: default/ghost-service)
+kubernetes_service.ghost_service: Destruction complete after 0s
+kubernetes_pod.ghost_alpine: Destroying... (ID: default/ghost-alpine)
+kubernetes_pod.ghost_alpine: Destruction complete after 3s
+
+Destroy complete! Resources: 2 destroyed.
+master $ kubectl get pods
+No resources found.
+master $ ^C
+master $ kubectl get services
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   45m
+master $ mkdir -p ~/terraform/deployment
+master $ cd ~/terraform/deployment
+master $ vi main.tf
+master $ vi main.tf
+master $ terraform init
+
+Initializing provider plugins...
+- Checking for available provider plugins on https://releases.hashicorp.com...
+- Downloading plugin for provider "kubernetes" (1.10.0)...
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.kubernetes: version = "~> 1.10"
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+master $ terraform validate
+master $ terraform plan
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
+
+
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  + kubernetes_deployment.ghost_deployment
+      id:                                                            <computed>
+      metadata.#:                                                    "1"
+      metadata.0.generation:                                         <computed>
+      metadata.0.name:                                               "ghost-blog"
+      metadata.0.namespace:                                          "default"
+      metadata.0.resource_version:                                   <computed>
+      metadata.0.self_link:                                          <computed>
+      metadata.0.uid:                                                <computed>
+      spec.#:                                                        "1"
+      spec.0.min_ready_seconds:                                      "0"
+      spec.0.paused:                                                 "false"
+      spec.0.progress_deadline_seconds:                              "600"
+      spec.0.replicas:                                               "1"
+      spec.0.revision_history_limit:                                 "10"
+      spec.0.selector.#:                                             "1"
+      spec.0.selector.0.match_labels.%:                              "1"
+      spec.0.selector.0.match_labels.app:                            "ghost-blog"
+      spec.0.strategy.#:                                             <computed>
+      spec.0.template.#:                                             "1"
+      spec.0.template.0.metadata.#:                                  "1"
+      spec.0.template.0.metadata.0.generation:                       <computed>
+      spec.0.template.0.metadata.0.labels.%:                         "1"
+      spec.0.template.0.metadata.0.labels.app:                       "ghost-blog"
+      spec.0.template.0.metadata.0.name:                             <computed>
+      spec.0.template.0.metadata.0.resource_version:                 <computed>
+      spec.0.template.0.metadata.0.self_link:                        <computed>
+      spec.0.template.0.metadata.0.uid:                              <computed>
+      spec.0.template.0.spec.#:                                      "1"
+      spec.0.template.0.spec.0.container.#:                          "1"
+      spec.0.template.0.spec.0.container.0.image:                    "ghost:alpine"
+      spec.0.template.0.spec.0.container.0.image_pull_policy:        <computed>
+      spec.0.template.0.spec.0.container.0.name:                     "ghost"
+      spec.0.template.0.spec.0.container.0.port.#:                   "1"
+      spec.0.template.0.spec.0.container.0.port.0.container_port:    "2368"
+      spec.0.template.0.spec.0.container.0.port.0.protocol:          "TCP"
+      spec.0.template.0.spec.0.container.0.resources.#:              <computed>
+      spec.0.template.0.spec.0.container.0.stdin:                    "false"
+      spec.0.template.0.spec.0.container.0.stdin_once:               "false"
+      spec.0.template.0.spec.0.container.0.termination_message_path: "/dev/termination-log"
+      spec.0.template.0.spec.0.container.0.tty:                      "false"
+      spec.0.template.0.spec.0.container.0.volume_mount.#:           <computed>
+      spec.0.template.0.spec.0.dns_policy:                           "ClusterFirst"
+      spec.0.template.0.spec.0.host_ipc:                             "false"
+      spec.0.template.0.spec.0.host_network:                         "false"
+      spec.0.template.0.spec.0.host_pid:                             "false"
+      spec.0.template.0.spec.0.hostname:                             <computed>
+      spec.0.template.0.spec.0.image_pull_secrets.#:                 <computed>
+      spec.0.template.0.spec.0.node_name:                            <computed>
+      spec.0.template.0.spec.0.restart_policy:                       "Always"
+      spec.0.template.0.spec.0.service_account_name:                 <computed>
+      spec.0.template.0.spec.0.share_process_namespace:              "false"
+      spec.0.template.0.spec.0.termination_grace_period_seconds:     "30"
+      spec.0.template.0.spec.0.volume.#:                             <computed>
+
+  + kubernetes_service.ghost_service
+      id:                                                            <computed>
+      load_balancer_ingress.#:                                       <computed>
+      metadata.#:                                                    "1"
+      metadata.0.generation:                                         <computed>
+      metadata.0.name:                                               "ghost-service"
+      metadata.0.namespace:                                          "default"
+      metadata.0.resource_version:                                   <computed>
+      metadata.0.self_link:                                          <computed>
+      metadata.0.uid:                                                <computed>
+      spec.#:                                                        "1"
+      spec.0.cluster_ip:                                             <computed>
+      spec.0.external_traffic_policy:                                <computed>
+      spec.0.port.#:                                                 "1"
+      spec.0.port.0.node_port:                                       "30080"
+      spec.0.port.0.port:                                            "2368"
+      spec.0.port.0.protocol:                                        "TCP"
+      spec.0.port.0.target_port:                                     "2368"
+      spec.0.publish_not_ready_addresses:                            "false"
+      spec.0.selector.%:                                             "1"
+      spec.0.selector.app:                                           "ghost-blog"
+      spec.0.session_affinity:                                       "None"
+      spec.0.type:                                                   "NodePort"
+
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if
+"terraform apply" is subsequently run.
+
+master $ terraform apply -auto-approve
+kubernetes_deployment.ghost_deployment: Creating...
+  metadata.#:                                                    "" => "1"
+  metadata.0.generation:                                         "" => "<computed>"
+  metadata.0.name:                                               "" => "ghost-blog"
+  metadata.0.namespace:                                          "" => "default"
+  metadata.0.resource_version:                                   "" => "<computed>"
+  metadata.0.self_link:                                          "" => "<computed>"
+  metadata.0.uid:                                                "" => "<computed>"
+  spec.#:                                                        "" => "1"
+  spec.0.min_ready_seconds:                                      "" => "0"
+  spec.0.paused:                                                 "" => "false"
+  spec.0.progress_deadline_seconds:                              "" => "600"
+  spec.0.replicas:                                               "" => "1"
+  spec.0.revision_history_limit:                                 "" => "10"
+  spec.0.selector.#:                                             "" => "1"
+  spec.0.selector.0.match_labels.%:                              "" => "1"
+  spec.0.selector.0.match_labels.app:                            "" => "ghost-blog"
+  spec.0.strategy.#:                                             "" => "<computed>"
+  spec.0.template.#:                                             "" => "1"
+  spec.0.template.0.metadata.#:                                  "" => "1"
+  spec.0.template.0.metadata.0.generation:                       "" => "<computed>"
+  spec.0.template.0.metadata.0.labels.%:                         "" => "1"
+  spec.0.template.0.metadata.0.labels.app:                       "" => "ghost-blog"
+  spec.0.template.0.metadata.0.name:                             "" => "<computed>"
+  spec.0.template.0.metadata.0.resource_version:                 "" => "<computed>"
+  spec.0.template.0.metadata.0.self_link:                        "" => "<computed>"
+  spec.0.template.0.metadata.0.uid:                              "" => "<computed>"
+  spec.0.template.0.spec.#:                                      "" => "1"
+  spec.0.template.0.spec.0.container.#:                          "" => "1"
+  spec.0.template.0.spec.0.container.0.image:                    "" => "ghost:alpine"
+  spec.0.template.0.spec.0.container.0.image_pull_policy:        "" => "<computed>"
+  spec.0.template.0.spec.0.container.0.name:                     "" => "ghost"
+  spec.0.template.0.spec.0.container.0.port.#:                   "" => "1"
+  spec.0.template.0.spec.0.container.0.port.0.container_port:    "" => "2368"
+  spec.0.template.0.spec.0.container.0.port.0.protocol:          "" => "TCP"
+  spec.0.template.0.spec.0.container.0.resources.#:              "" => "<computed>"
+  spec.0.template.0.spec.0.container.0.stdin:                    "" => "false"
+  spec.0.template.0.spec.0.container.0.stdin_once:               "" => "false"
+  spec.0.template.0.spec.0.container.0.termination_message_path: "" => "/dev/termination-log"
+  spec.0.template.0.spec.0.container.0.tty:                      "" => "false"
+  spec.0.template.0.spec.0.container.0.volume_mount.#:           "" => "<computed>"
+  spec.0.template.0.spec.0.dns_policy:                           "" => "ClusterFirst"
+  spec.0.template.0.spec.0.host_ipc:                             "" => "false"
+  spec.0.template.0.spec.0.host_network:                         "" => "false"
+  spec.0.template.0.spec.0.host_pid:                             "" => "false"
+  spec.0.template.0.spec.0.hostname:                             "" => "<computed>"
+  spec.0.template.0.spec.0.image_pull_secrets.#:                 "" => "<computed>"
+  spec.0.template.0.spec.0.node_name:                            "" => "<computed>"
+  spec.0.template.0.spec.0.restart_policy:                       "" => "Always"
+  spec.0.template.0.spec.0.service_account_name:                 "" => "<computed>"
+  spec.0.template.0.spec.0.share_process_namespace:              "" => "false"
+  spec.0.template.0.spec.0.termination_grace_period_seconds:     "" => "30"
+  spec.0.template.0.spec.0.volume.#:                             "" => "<computed>"
+kubernetes_deployment.ghost_deployment: Creation complete after 1s (ID: default/ghost-blog)
+kubernetes_service.ghost_service: Creating...
+  load_balancer_ingress.#:            "" => "<computed>"
+  metadata.#:                         "" => "1"
+  metadata.0.generation:              "" => "<computed>"
+  metadata.0.name:                    "" => "ghost-service"
+  metadata.0.namespace:               "" => "default"
+  metadata.0.resource_version:        "" => "<computed>"
+  metadata.0.self_link:               "" => "<computed>"
+  metadata.0.uid:                     "" => "<computed>"
+  spec.#:                             "" => "1"
+  spec.0.cluster_ip:                  "" => "<computed>"
+  spec.0.external_traffic_policy:     "" => "<computed>"
+  spec.0.port.#:                      "" => "1"
+  spec.0.port.0.node_port:            "" => "30080"
+  spec.0.port.0.port:                 "" => "2368"
+  spec.0.port.0.protocol:             "" => "TCP"
+  spec.0.port.0.target_port:          "" => "2368"
+  spec.0.publish_not_ready_addresses: "" => "false"
+  spec.0.selector.%:                  "" => "1"
+  spec.0.selector.app:                "" => "ghost-blog"
+  spec.0.session_affinity:            "" => "None"
+  spec.0.type:                        "" => "NodePort"
+kubernetes_service.ghost_service: Creation complete after 0s (ID: default/ghost-service)
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+$ kubectl get deployments
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+ghost-blog   1/1     1            1           62s
+
+$ kubectl get pods
+
+$ kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+ghost-blog-7685857bd7-4rd2j   1/1     Running   0          99s
+
+
+$ kubectl delete pod ghost-blog-7685857bd7-4rd2j
+pod "ghost-blog-7685857bd7-4rd2j" deleted
+
+$ terraform destroy -auto-approve
+kubernetes_deployment.ghost_deployment: Refreshing state... (ID: default/ghost-blog)
+kubernetes_service.ghost_service: Refreshing state... (ID: default/ghost-service)
+kubernetes_service.ghost_service: Destroying... (ID: default/ghost-service)
+kubernetes_service.ghost_service: Destruction complete after 0s
+kubernetes_deployment.ghost_deployment: Destroying... (ID: default/ghost-blog)
+kubernetes_deployment.ghost_deployment: Destruction complete after 0s
+
+Destroy complete! Resources: 2 destroyed.
